@@ -1,5 +1,4 @@
 # HOWTO Use PulseAudio with a Fe-Pi Stereo Sound Card and Fldigi/Direwolf
-***
 Version: 20190524  
 Author: Steve Magnuson, AG7GN  
 
