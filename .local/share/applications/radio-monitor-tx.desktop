@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Start TX Monitor
+GenericName=Amateur Radio Digital Modem
+Comment=Amateur Radio Sound Card Communications
+Exec=sh -c 'pactl load-module module-loopback source="fepi-playback.monitor" sink="system-audio-playback"'
+Icon=fldigi
+Terminal=false
+Type=Application
+Categories=HamRadio;
+Path=/home/pi
