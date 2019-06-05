@@ -110,7 +110,7 @@ Likewise, we'll specify the left and right virtual interfaces we create in __def
 As sudo, make a backup of /etc/pulse/default.pa in /etc/pulse/default.pa.original:
 
 	cd /etc/pulse 
-	sudo mv default.pa default.pa.original 
+	sudo cp default.pa default.pa.original 
 
 As sudo, edit /etc/pulse/default.pa so it looks like the following.  
 
