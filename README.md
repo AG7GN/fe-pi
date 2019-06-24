@@ -1,4 +1,4 @@
-# HOWTO Use PulseAudio with a Fe-Pi Stereo Sound Card and Fldigi/Direwolf
+# HOWTO Use `pulseaudio` with a Fe-Pi Stereo Sound Card and Fldigi/Direwolf
 Version: 20190624  
 Author: Steve Magnuson, AG7GN  
 
@@ -10,7 +10,7 @@ at [NW Digital Radio](https://github.com/nwdigitalradio/split-channels), expande
 - [Fe-Pi Audio Z Version 2 sound card](https://fe-pi.com/products/fe-pi-audio-z-v2)
 - WB7FHC Budd Churchward's excellent DigiLink board (REV C or later) or equivalent GPIO controlled PTT
 - Raspbian Stretch OS  (This procedure has not been tested on other distributions)
-- OPTIONAL: Speakers attached to Pi's built-in audio jack if you want to monitor the radio's TX and/or RX to the Pi's speakers
+- OPTIONAL: Speakers attached to Pi's built-in audio jack if you want to monitor the radio's TX and/or RX on the Pi's speakers
 - Familiarity with the Pi's Terminal application, basic LINUX commands and the use of `sudo`
 - Familiarity with any Linux text editor
 
@@ -18,7 +18,7 @@ This procedure assumes the operating user is __pi__ and pi's home directory is _
 
 ## 2. Configuration Procedure
 
-### 2.1 Install `pulseaudio`.  
+### 2.1 Install `pulseaudio`  
 Open a terminal, then run:
 
 	sudo apt update && sudo apt install pulseaudio
