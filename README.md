@@ -1,15 +1,15 @@
 # HOWTO Use `pulseaudio` with a Fe-Pi Stereo Sound Card and Fldigi/Direwolf
-Version: 20190624  
+Version: 20190729  
 Author: Steve Magnuson, AG7GN  
 
 This is a variation of the Split Channels documentation for DRAWS/UDRC by **mcdermj** 
 at [NW Digital Radio](https://github.com/nwdigitalradio/split-channels), expanded, adapted and modified for use with the DigiLink and Fe-Pi audio.
 ## 1. Prerequisites
 
-- Raspberry Pi 3B or 3B+
+- Raspberry Pi 3B or 3B+.  I have not tested with a model 4, but it should work.
 - [Fe-Pi Audio Z Version 2 sound card](https://fe-pi.com/products/fe-pi-audio-z-v2)
 - WB7FHC Budd Churchward's excellent DigiLink board (REV C or later) or equivalent GPIO controlled PTT
-- Raspbian Stretch OS  (This procedure has not been tested on other distributions)
+- Raspbian Stretch or Buster OS.  This procedure has not been tested on other distributions, and some instructions are OS-specific.
 - OPTIONAL: Speakers attached to Pi's built-in audio jack if you want to monitor the radio's TX and/or RX on the Pi's speakers
 - Familiarity with the Pi's Terminal application, basic LINUX commands and the use of `sudo`
 - Familiarity with any Linux text editor
@@ -223,10 +223,18 @@ As sudo, edit `/usr/share/alsa/pulse-alsa.conf` and comment out __all__ non-empt
 
 ### 2.8 Restart `pulseaudio` 
 
-Open a terminal, then run:
+- For Debian Buster:
 
-	pulseaudio -k 
-	pulseaudio --start --log-target=syslog
+	Open a terminal, then run:
+
+		systemctl --user restart pulseaudio 
+	
+- For Debian Stretch:
+
+	Open a terminal, then run:
+
+		pulseaudio -k 
+		pulseaudio --start --log-target=syslog
 
 ## 3. Scenarios
 
@@ -277,7 +285,7 @@ __Transmit__ Usage *and* under __Receive__ Usage.
 
 		Exec=sh -c 'PULSE_SINK=fepi-playback PULSE_SOURCE=fepi-capture fldigi'
 
-1. Reload the menu items.  Run this command in a terminal:
+1. Reload the menu items.  Run this command in a terminal (this step may not be necessary):
 
 		lxpanelctl restart
 
@@ -361,7 +369,7 @@ lines as follows:
 		Exec=sh -c 'PULSE_SINK=fepi-playback PULSE_SOURCE=fepi-capture fldigi --config-dir=/home/pi/.fldigi-right -title "Alinco fldigi"' 
 		Name[en_US]=Fldigi - Alinco
 
-1) Reload the menu.  Run this command in a terminal:
+1) Reload the menu.  Run this command in a terminal (this step may not be necessary):
 
 		lxpanelctl restart
 
@@ -437,8 +445,14 @@ To adjust the level of the audio on your Pi's speakers, use the speaker's volume
 
 If you use the Audio Device Settings app, __DO NOT__ click the __Make Default__ button in Audio!  Likewise, __DO NOT__ right-click on the Speaker icon in the upper right of the desktop and then click any of the cards listed.  Doing so will change the default sound card and may mess up your audio. To restore, close all instances of fldigi and direwolf and restart `pulseaudio` in a terminal:
 
-	pulseaudio -k 
-	pulseaudio --start --log-target=syslog
+- For Debian Buster:
+
+		systemctl --user restart pulseaudio 
+	
+- For Debian Stretch:
+
+		pulseaudio -k 
+		pulseaudio --start --log-target=syslog
 	
 ### 5.1 Control TX and/or RX monitoring control from the command line
 
