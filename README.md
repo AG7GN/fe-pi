@@ -25,7 +25,7 @@ Open a terminal, then run:
 
 ### 2.2 Select Pi's local audio output destination (speakers or HDMI)
 
-*Skip this step if you have no speakers connected to your Pi or your Pi' monitor via HDMI.*  
+*Skip this step if you have no speakers connected to your Pi or your Pi's monitor via HDMI.*  
 
 Force the Pi to use either the HDMI connection or the built-in 3.5mm connection for system sounds and for monitoring your radio's RX and TX audio.  
 
