@@ -1,5 +1,5 @@
 # HOWTO Use `pulseaudio` with a Fe-Pi Stereo Sound Card and Fldigi/Direwolf
-Version: 20190729  
+Version: 20190916  
 Author: Steve Magnuson, AG7GN  
 
 This is a variation of the Split Channels documentation for DRAWS/UDRC by **mcdermj** 
@@ -8,7 +8,7 @@ at [NW Digital Radio](https://github.com/nwdigitalradio/split-channels), expande
 
 - Raspberry Pi 3B or 3B+.  I have not tested with a model 4, but it should work.
 - [Fe-Pi Audio Z Version 2 sound card](https://fe-pi.com/products/fe-pi-audio-z-v2)
-- WB7FHC Budd Churchward's excellent DigiLink board (REV C or later) or equivalent GPIO controlled PTT
+- WB7FHC Budd Churchward's excellent DigiLink (REV C or later) or Nexus board, or equivalent GPIO controlled PTT
 - Raspbian Stretch or Buster OS.  This procedure has not been tested on other distributions, and some instructions are OS-specific.
 - OPTIONAL: Speakers attached to Pi's built-in audio jack if you want to monitor the radio's TX and/or RX on the Pi's speakers
 - Familiarity with the Pi's Terminal application, basic LINUX commands and the use of `sudo`
@@ -199,6 +199,8 @@ As sudo, edit /etc/pulse/default.pa so it looks like the following.
 
 ### 2.7 Prevent `pulseaudio` from being the default sound interface  
 
+__IMPORTANT__:  I have noticed that when PulseAudio is updated as part of the normal Raspbian updates, `/usr/share/alsa/pulse-alsa.conf` gets overwritten.  Please check this file whenever PulseAudio is updated and make sure that all lines are commented out as described below.
+
 Make a copy of `/usr/share/alsa/pulse-alsa.conf`:  
 
 	sudo cp /usr/share/alsa/pulse-alsa.conf /usr/share/alsa/pulse-alsa.conf.original  
@@ -268,20 +270,7 @@ __Transmit__ Usage *and* under __Receive__ Usage.
 
 #### 3.1.2 Locate and edit your `fldigi.desktop` file
 
-1. Click the Raspberry icon on the upper right of the desktop. 
-1. Click the top level menu containing your fldigi app (differs depending on your menu setup - usually "Ham Radio") 
-1. _RIGHT_-click on Fldigi, then click Properties.  Note the "Target file". It will 
-  be `/home/pi/.local/share/applications/fldigi.desktop` or 
-  `/usr/local/share/applications/fldigi.desktop`.  
-  
-  	Note the folder name containing fldigi.desktop.
-1. If the `fldigi.desktop` file is in `/usr/local/share/applications/`, run these commands:
-
-		cp /usr/local/share/applications/fldigi.desktop ~/.local/share/applications/
-		sudo mv /usr/local/share/applications/fldigi.desktop /usr/local/share/applications/fldigi.desktop.disabled
-		cd ~/.local/share/applications/
-
-1. Open the __~/.local/share/applications/fldigi.desktop__ file in an editor and change the `Exec=` line as follows, then save the file and exit the editor:
+1. Open the __/usr/local/share/applications/fldigi.desktop__ file in an editor (as sudo) and change the `Exec=` line as follows, then save the file and exit the editor:
 
 		Exec=sh -c 'PULSE_SINK=fepi-playback PULSE_SOURCE=fepi-capture fldigi'
 
@@ -334,36 +323,25 @@ Open a terminal, then run:
 
 #### 3.4.2 Locate your `fldigi.desktop` file.
 
-1. Click the Raspberry icon on the upper right of the desktop. 
-1. Click the top menu containing your Fldigi app (differs depending on your menu setup - usually "Ham Radio") 
-1. _RIGHT_-click on Fldigi, then click Properties.  Note the "Target file". It will 
-  be `/home/pi/.local/share/applications/fldigi.desktop` or 
-  `/usr/local/share/applications/fldigi.desktop`.  
-  
-  	Note the folder name containing fldigi.desktop.
-1. If the `fldigi.desktop` file is in `/usr/local/share/applications/fldigi.desktop`, run these commands:
-
-		cp /usr/local/share/applications/fldigi.desktop ~/.local/share/applications/
-		sudo mv /usr/local/share/applications/fldigi.desktop /usr/local/share/applications/fldigi.desktop.disabled
-		cd ~/.local/share/applications/
+__SECTION DELETED__
 
 #### 3.4.3 Make new menu entries for each radio.
 
 1) Example: Say your 2 radios are a Kenwood (on the left) and an Alinco (on the
 right), then run:
 
-		cd ~/.local/share/applications/
-		cp fldigi.desktop fldigi-kenwood.desktop 
-		cp fldigi.desktop fldigi-alinco.desktop 
-		mv fldigi.desktop fldigi.desktop.disabled
+		cd /usr/local/share/applications/
+		sudo cp fldigi.desktop fldigi-kenwood.desktop 
+		sudo cp fldigi.desktop fldigi-alinco.desktop 
+		sudo mv fldigi.desktop fldigi.desktop.disabled
 
-1) Edit the `fldigi-kenwood.desktop` file, changing the `Exec=` and `Name=`
+1) Edit (as sudo) the `fldigi-kenwood.desktop` file, changing the `Exec=` and `Name=`
 lines as follows:
 
 		Exec=sh -c 'PULSE_SINK=fepi-playback PULSE_SOURCE=fepi-capture fldigi --config-dir=/home/pi/.fldigi-left -title "Kenwood fldigi"' 
 		Name[en_US]=Fldigi - Kenwood
 
-1) Edit the `fldigi-alinco.desktop` file, changing the `Exec=` and `Name=`
+1) Edit (as sudo) the `fldigi-alinco.desktop` file, changing the `Exec=` and `Name=`
 lines as follows:
 
 		Exec=sh -c 'PULSE_SINK=fepi-playback PULSE_SOURCE=fepi-capture fldigi --config-dir=/home/pi/.fldigi-right -title "Alinco fldigi"' 
@@ -473,7 +451,7 @@ These terminal commands will enable and disable monitoring of the radio's TX and
 You can create menu items to control RX and TX monitoring by placing the above commands in a `.desktop` file.
 You may need to modify __Categories=__ in the files described below depending on how you have your Raspberry Pi menus set up so that they appear in the correct top level menu.
 
-1.	Create a file called `~/.local/share/applications/radio-monitor-rx.desktop` with this text:
+1.	Create (as sudo) a file called `/usr/local/share/applications/radio-monitor-rx.desktop` with this text:
 
 		[Desktop Entry]
 		Name=Start RX Monitor
@@ -486,7 +464,7 @@ You may need to modify __Categories=__ in the files described below depending on
 		Categories=HamRadio;
 		Path=/home/pi
 
-1.	Create a file called `~/.local/share/applications/radio-monitor-tx.desktop` with this text:
+1.	Create (as sudo) a file called `/usr/local/share/applications/radio-monitor-tx.desktop` with this text:
 
 		[Desktop Entry]
 		Name=Start TX Monitor
@@ -499,7 +477,7 @@ You may need to modify __Categories=__ in the files described below depending on
 		Categories=HamRadio;
 		Path=/home/pi
 		
-1.	Create a file called `~/.local/share/applications/radio-monitor-stop.desktop` with this text:
+1.	Create (as sudo) a file called `/usr/local/share/applications/radio-monitor-stop.desktop` with this text:
 
 		[Desktop Entry]
 		Name=Stop TX and RX Monitors
