@@ -1,5 +1,5 @@
 # HOWTO Use `pulseaudio` with a Fe-Pi Stereo Sound Card and Fldigi/Direwolf
-Version: 20190916  
+Version: 20191215  
 Author: Steve Magnuson, AG7GN  
 
 This is a variation of the Split Channels documentation for DRAWS/UDRC by **mcdermj** 
@@ -305,7 +305,7 @@ where *y* = 12 for the left radio or 23 for the right radio.
 
 ### 3.3 Scenario 3: I want to run Fldigi on the {right or left} radio and Direwolf on the {left or right} radio at the same time.  
                 
-*Note that if Direwolf is on the Left radio, then Fldigi must be on the Right radio and vice-versa.  Fldigi and Direwolf cannot both use a single radio at the same time.  Likewise, two instances of Fldigi cannot use the same radio at the same time and two instances of Direwolf cannot use the same radio at the same time.*
+*Note that if Direwolf is on the Left radio, then Fldigi must be on the Right radio and vice-versa.  Fldigi and Direwolf cannot both use a single radio at the same time.*
 
 #### 3.3.1 Follow the directions in Scenarios 1 and 2.
 
