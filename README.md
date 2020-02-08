@@ -1,14 +1,14 @@
 # HOWTO Use `pulseaudio` with a Fe-Pi Stereo Sound Card and Fldigi/Direwolf
-Version: 20191215  
+Version: 20200130  
 Author: Steve Magnuson, AG7GN  
 
 This is a variation of the Split Channels documentation for DRAWS/UDRC by **mcdermj** 
-at [NW Digital Radio](https://github.com/nwdigitalradio/split-channels), expanded, adapted and modified for use with the DigiLink and Fe-Pi audio.
+at [NW Digital Radio](https://github.com/nwdigitalradio/split-channels), expanded, adapted and modified for use with the Nexus DR-X/DigiLink and Fe-Pi audio.
 ## 1. Prerequisites
 
-- Raspberry Pi 3B or 3B+.  I have not tested with a model 4, but it should work.
+- Raspberry Pi 3B or 3B+.  I have not tested with a model 4B, but it should work.
 - [Fe-Pi Audio Z Version 2 sound card](https://fe-pi.com/products/fe-pi-audio-z-v2)
-- WB7FHC Budd Churchward's excellent DigiLink (REV C or later) or Nexus board, or equivalent GPIO controlled PTT
+- WB7FHC Budd Churchward's excellent DigiLink (REV C or later) or [Nexus DR-X](http://wb7fhc.com/nexus-dr-x.html) board, or equivalent GPIO controlled PTT
 - Raspbian Stretch or Buster OS.  This procedure has not been tested on other distributions, and some instructions are OS-specific.
 - OPTIONAL: Speakers attached to Pi's built-in audio jack if you want to monitor the radio's TX and/or RX on the Pi's speakers
 - Familiarity with the Pi's Terminal application, basic LINUX commands and the use of `sudo`
@@ -18,47 +18,25 @@ This procedure assumes the operating user is __pi__ and pi's home directory is _
 
 ## 2. Configuration Procedure
 
+__NOTE:__ If you are using the Hampi image, the majority of the following setup is already done for you.
+
 ### 2.1 Install `pulseaudio`  
-Open a terminal, then run:
+
+PulseAudio is installed by default in Raspbian Stretch and Buster.  Just to make sure it is, open a terminal, then run:
 
 	sudo apt update && sudo apt install pulseaudio
 
-### 2.2 Select Pi's local audio output destination (speakers or HDMI)
+### 2.2 Determine the sound card name
 
-*Skip this step if you have no speakers connected to your Pi or your Pi's monitor via HDMI.*  
-
-Force the Pi to use either the HDMI connection or the built-in 3.5mm connection for system sounds and for monitoring your radio's RX and TX audio.  
-
-Open a terminal and run:
-
-	sudo raspi-config
-
-Then:
-
-- Select __7 Advanced Options__ \<ENTER\>
- 
-- Select __A4 Audio__ \<ENTER\>
-
-	Select *one* of the following:  
-		- __1 Force 3.5mm (headphone) jack__ if your speakers are connected there. (Most common)   
-		- __2 Force HDMI__ if your monitor has built-in speakers and can receive audio via HDMI.  
-
-	Press \<ENTER\> 
-
-- Select __FINISH__ (Press the TAB key to move the cursor)
-
-### 2.3 Determine the sound card name
-
-Open a terminal and execute `arecord -l` as shown in this example:
+Open a terminal and run `arecord -l` as shown in this example:
 
 	pi@mypi:~ $ arecord -l 
 	card 1: Audio [Fe-Pi Audio], device 0: Fe-Pi HiFi
 	sgtl5000-0 [] Subdevices: 0/1 Subdevice #0: subdevice #0
 
-The card name is "Audio" in this example.  Use the name that's after "card 1:" and before the text 
-in square brackets.  For Fe-Pi, it'll be "Audio"
+The card name is "__Audio__" in this example.  Use the name that's after "card 1:" and before the text in square brackets.  For Fe-Pi, it'll be "__Audio__"
 
-### 2.4 Back up any existing `/etc/asound.conf` file
+### 2.3 Back up any existing `/etc/asound.conf` file
 
 - Case 1: There is no existing `/etc/asound.conf` file.  Example:
 
@@ -77,9 +55,9 @@ in square brackets.  For Fe-Pi, it'll be "Audio"
 
 		sudo cp /etc/asound.conf /etc/asound.conf.original 
 
-### 2.5 Create `/etc/asound.conf`
+### 2.4 Create `/etc/asound.conf`
 
-This step will make the virtual audio interfaces we create in `pulseaudio` available to applications that can't use `pulseaudio` directly, like Direwolf.  
+This step will make the virtual audio interfaces we create in `pulseaudio` available to applications that can't use `pulseaudio` directly, like Direwolf.  These appear to other applications as [ALSA](https://alsa-project.org/wiki/Main_Page) devices.  
 
 As sudo, edit or create `/etc/asound.conf` in a text editor.  It should contain only the following lines.  
 
@@ -99,21 +77,27 @@ As sudo, edit or create `/etc/asound.conf` in a text editor.  It should contain 
 	  type pulse
 	  device "fepi-playback-right"
 	}
+	pcm.system-audio-playback {
+	  type pulse
+	  device "system-audio-playback"
+	}
 
-### 2.6 Modify `/etc/pulse/default.pa`
+### 2.5 Modify `/etc/pulse/default.pa`
 
 The changes to this file will set up the Fe-Pi left and right channels and tell `pulseaudio` to use the NULL audio source (no input audio) and the Pi's built-in sound card for the audio sink (output) by default.  
 
-We will use environment variables __PULSE_SOURCE__ and __PULSE_SINK__ when starting Fldigi so that it uses the Fe-Pi audio interface instead of NULL/built-in-audio-card.  
+We will use environment variables __PULSE_SOURCE__ and __PULSE_SINK__ when starting Fldigi so that it'll use the Fe-Pi audio interface instead of NULL/built-in-audio-card.  
 
-Likewise, we'll specify the left and right virtual interfaces we create in __default.pa__ below, in __direwolf.conf__ to point direwolf to the correct radio.  
+Likewise, we'll specify the left and right virtual interfaces we create in __default.pa__ below in __direwolf.conf__ to point direwolf to the correct radio by referencing the virtual ALSA devices we created in the previous step.  
+
+Finally, we'll create the virtual interface `system-audio-playback` for use within Fldigi for alerts, notifications, and audio monitoring.
 
 As sudo, make a backup of `/etc/pulse/default.pa`:
 
 	cd /etc/pulse 
 	sudo cp default.pa default.pa.original 
 
-As sudo, edit /etc/pulse/default.pa so it looks like the following.  
+As sudo, edit `/etc/pulse/default.pa` so it looks like the following:  
 
 	#!/usr/bin/pulseaudio -nF
 	#
@@ -197,9 +181,11 @@ As sudo, edit /etc/pulse/default.pa so it looks like the following.
 	set-default-sink system-audio-playback
 	set-default-source null
 
-### 2.7 Prevent `pulseaudio` from being the default sound interface  
+### 2.6 Prevent `pulseaudio` from being the default sound interface  
 
-__IMPORTANT__:  I have noticed that when PulseAudio is updated as part of the normal Raspbian updates, `/usr/share/alsa/pulse-alsa.conf` gets overwritten.  Please check this file whenever PulseAudio is updated and make sure that all lines are commented out as described below.
+We don't want PulseAudio to be the default audio device.  Why?  Because we don't want applications that use audio to interfere with the operation of the ham radio applications.
+
+__IMPORTANT__:  I have noticed that when PulseAudio is updated as part of the normal Raspbian updates, `/usr/share/alsa/pulse-alsa.conf` may be overwritten.  Please check this file whenever PulseAudio is updated and make sure that all lines are commented out as described below.
 
 Make a copy of `/usr/share/alsa/pulse-alsa.conf`:  
 
@@ -223,15 +209,15 @@ As sudo, edit `/usr/share/alsa/pulse-alsa.conf` and comment out __all__ non-empt
 	#    type pulse
 	#}
 
-### 2.8 Restart `pulseaudio` 
+### 2.7 Restart `pulseaudio` 
 
-- For Debian Buster:
+- For Debian Buster, pulseaudio runs as a user service:
 
 	Open a terminal, then run:
 
 		systemctl --user restart pulseaudio 
 	
-- For Debian Stretch:
+- For Debian Stretch, pulseaudio runs as a sytem service:
 
 	Open a terminal, then run:
 
@@ -240,31 +226,33 @@ As sudo, edit `/usr/share/alsa/pulse-alsa.conf` and comment out __all__ non-empt
 
 ## 3. Scenarios
 
-At this stage, `pulseaudio` is ready to use on either the left or the right radio or both at once.   Decide how you want to use your radios and Fldigi and Direwolf.  
+At this stage, `pulseaudio` is ready to use on either the left or the right radio or both at once.   
 
-1. Determine where your radio(s) is/are connected:
+1. Decide how you want to use your radios and Fldigi and Direwolf.  
+
+1. Determine where your radio(s) is/are connected (applies to the Nexus DR-X or DigiLink boards):
 
 	- The "Left" radio (uses GPIO 12 for PTT) is plugged in to the left 
-6-pin miniDIN **_or_** the RJ45 jack
+6-pin miniDIN **_or_** the RJ45 jack if configured.
 	- The "Right" radio (uses GPIO 23 for PTT) is plugged in to the right 
-6-pin miniDIN **_or_** the TRRS jack.
+6-pin miniDIN **_or_** the TRRS jack if configured.
 
-2. Select your desired scenario from the Scenario sections that follow.
+1. Select your desired scenario from the Scenario sections that follow.
 
-### 3.1 Scenario 1: I only want to use Fldigi with one radio.
+### 3.1 Scenario 1: I want to use only Fldigi with one radio.
 
 #### 3.1.1 Configure Fldigi
 
 1. Open Fldigi, click __Configure > Sound Card__.  Select the __Devices__ tab.
-1. Check _PulseAudio_ and leave the *Server String* field empty. 
-1. Select the __Settings__ tab and select Converter __Medium Sinc Interpolator__ (best for V/UHF - change as desired) 
-1. Select the __Right channel__ tab.  
+1. Check __PulseAudio__ and leave the *Server String* field empty. 
+1. Select __Settings__ and select Converter __Medium Sinc Interpolator__ (best for V/UHF - change as desired) 
+1. Select __Right channel__.  
 	For "Right" connected radios: Check _Reverse left/right channels_ under 
 __Transmit__ Usage *and* under __Receive__ Usage.  
   For "Left" connected radios, leave these 2 boxes unchecked. 
-1. Click the __Rig__ tab then the __GPIO__ tab and set your GPIO to whatever your radio uses: 
-  	- "Left" radios: _BCM 12_, also check the corresponding _= 1 (on)_ box  
-  	- "Right" radios: _BCM 23_, also check the corresponding _= 1 (on)_ box
+1. Select __Rig Control > GPIO__ and set your GPIO to whatever your radio uses: 
+  	- "Left" radios: __BCM 12__, also check the corresponding '__= 1 (on)__' box  
+  	- "Right" radios: __BCM 23__, also check the corresponding '__= 1 (on)__' box
 1. Click __Save__ and __Close__.
 1. Restart Fldigi.
 
@@ -280,11 +268,7 @@ __Transmit__ Usage *and* under __Receive__ Usage.
 
 1.	Restart Fldigi from the menu.
 
-#### 3.1.3 (Optional) TX/RX Monitor Capability
-
-Read the "(Optional) Monitor Radio's TX and/or RX audio on Pi's Speakers" section below for instructions on setting up TX/RX monitoring.
-
-### 3.2 Scenario 2: I only want to use Direwolf with one radio.
+### 3.2 Scenario 2: I want to use only Direwolf with one radio.
 
 #### 3.2.1 Configure Direwolf
 
@@ -293,25 +277,27 @@ or in `/etc`), change the ADEVICE line to look like this:
 
 	ADEVICE fepi-capture-? fepi-playback-?
 
-where *?* = `left` or `right` depending on where your radio is plugged in to the DigiLink.
+where *?* = `left` or `right` depending on where your radio is plugged in to the Nexus DR-X/DigiLink.
 
 Also change the PTT line to 
 
 	PTT GPIO y
 
-where *y* = 12 for the left radio or 23 for the right radio.
+where *y* = __12__ for the left radio or __23__ for the right radio.
 
 #### 3.2.2 Restart Direwolf using whatever script you use to operate Direwolf.
 
 ### 3.3 Scenario 3: I want to run Fldigi on the {right or left} radio and Direwolf on the {left or right} radio at the same time.  
                 
-*Note that if Direwolf is on the Left radio, then Fldigi must be on the Right radio and vice-versa.  Fldigi and Direwolf cannot both use a single radio at the same time.*
+*Note that if Direwolf is on the Left radio, then Fldigi must be on the Right radio or vice-versa.  Fldigi and Direwolf cannot both use the same radio at the same time.*
 
 #### 3.3.1 Follow the directions in Scenarios 1 and 2.
 
 ### 3.4 Scenario 4: I want to run 2 Fldigi applications at the same time, one for a "Right" radio and one for a "Left" radio.
 
-__Attention Flmsg users__:  It is possible but somewhat complicated to run 2 instances of Flmsg, one associated with the left Fldigi and one with the right.  I recommend keeping things as simple as possible:  If you want to use Flmsg, make sure only one instance of Fldigi is running.
+__Attention Flmsg users__:  It is possible but somewhat complicated to run 2 instances of Flmsg, one associated with the left Fldigi and one with the right.  I recommend keeping things as simple as possible:  If you want to use Flmsg, make sure only one instance of Fldigi is running.  
+
+The Hampi image comes already set up to do run and Flmsg "Left" and Flmsg "Right" corresponding to Fldigi Left and Right.
 
 #### 3.4.1 Make copies of the Fldigi configuration folder.  
 
@@ -351,7 +337,7 @@ lines as follows:
 
 		lxpanelctl restart
 
-	You should now see 2 Fldigi entries in your menu.
+You should now see 2 Fldigi entries in your menu.
 
 1) Run ONE (*only run one at a time during setup!*) of the new Fldigi menu items and set up the sound card and Rig control settings as described in Scenario 1.  Close that instance of Fldigi and repeat for the second Fldigi menu item.
        
@@ -402,7 +388,7 @@ these settings on the __1 Fe-Pi Audio__ device as needed:
 
 1. Save Audio Settings (usually not required)
 	
-	These audio settings should save automatically, but for good measure store them again by running:
+	These audio settings should save automatically, but for good measure you can store them again by running:
 
 		sudo alsactl store
 
@@ -419,19 +405,12 @@ you can run this command to save the settings (choose your own file name/locatio
 
 If you have speakers connected to the Pi, you can configure `pulseaudio` to monitor the audio to and/or from the radio
 
-To adjust the level of the audio on your Pi's speakers, use the speaker's volume knob if it has one.  The speaker icon in the upper right of the Pi desktop also controls the Pi's speaker volume.  Another way is to adjust the volume in alsamixer (__0 bcm2835 ALSA__ device) or clicking the Raspberry icon on the desktop, select __Preferences > Audio Device Settings__.  Select the __bcm2835 ALSA__ sound card, and adjust the slider to your liking.  
+The Pi's built-in sound interface can output audio to the audio jack on the board.  This is the __Analog__ output.  It can also send audio to HDMI-attached monitors that have built-in speakers.  This is the __HDMI__ output.  To toggle between __Analog__ and __HDMI__, right-click on the speaker icon on the menu bar. Move your mouse over __Audio Outputs__.  Another menu should pop out showing __Analog__ and __HDMI__.  Select the one appropriate for your setup.
 
-If you use the Audio Device Settings app, __DO NOT__ click the __Make Default__ button in Audio!  Likewise, __DO NOT__ right-click on the Speaker icon in the upper right of the desktop and then click any of the cards listed.  Doing so will change the default sound card and may mess up your audio. To restore, close all instances of fldigi and direwolf and restart `pulseaudio` in a terminal:
+To adjust the level of the audio on your Pi's speakers, use the speaker's volume knob if it has one.  The speaker icon in the upper right of the Pi desktop also controls the Pi's speaker volume.  
 
-- For Debian Buster:
+Another way is to adjust the volume in alsamixer (__0 bcm2835 ALSA__ device) or clicking the Raspberry icon on the desktop, select __Preferences > Audio Device Settings__.  Select the __bcm2835 ALSA__ sound card, and adjust the slider to your liking.
 
-		systemctl --user restart pulseaudio 
-	
-- For Debian Stretch:
-
-		pulseaudio -k 
-		pulseaudio --start --log-target=syslog
-	
 ### 5.1 Control TX and/or RX monitoring control from the command line
 
 These terminal commands will enable and disable monitoring of the radio's TX and RX on the Pi's speakers.  None, one or both of these monitors can be run at the same time.
@@ -492,5 +471,36 @@ You may need to modify __Categories=__ in the files described below depending on
 		
 1. Edit the placement of these menu items as desired using the Pi's Main Menu editor (__Pi icon > Preferences > Main Menu Editor__)
 
+### 5.3 (Optional) Using Fldigi 4.1.09 (and later) Alerts, Notifications and RX Monitoring
 
+Fldigi version 4.1.09 introduced the ability to control where alerts, notifications and monitoring audio is sent.  Obviously, you don't want to send that audio to the radio so having the ability to control where it goes is important.
 
+5.3.1 Fldigi Alerts
+
+Note that Fldigi [Alerts](http://www.w1hkj.com/FldigiHelp/audio_alerts_page.html) won't work for FSQ because it only looks in the signal browser for any text you specify in the alert.
+
+The sound interface used for Alerts and RX Monitoring is set in __Configure > Config Dialog > Soundcard > Devices__.  
+
+1.	In the __Alerts/RX Audio__ section, select `system-audio-playback` and check `Enable Audio Alerts`.  Click __Save__ and __Close__.
+1.	In the left pane of the __Fldigi configuration__ window, select __Alerts__ to set up your alerts.  
+
+All alerts will now play through the Pi's built-in sound interface.  Don't forget to select __Analog__ or __HDMI__ output as described earlier.
+
+5.3.2 Fldigi Notifications
+
+Unlike Alerts, Fldigi [Notifications](http://www.w1hkj.com/FldigiHelp/notifier_page.html) can look for text in Fldigi's Receive Messages pane.  To set up an audio alert in Fldigi, open __Configure > Notifications__ 
+
+1.	Enter your search criteria.
+2.	Under __Run Program__, enter the following:
+
+		
+		aplay -D system-audio-playback <path-to-WAV-file>
+	For example:
+
+		aplay -D system-audio-playback /usr/lib/libreoffice/share/gallery/sounds/untie.wav
+
+This will send audio triggered by a Notification to the built-in audio interface.  Don't forget to select __Analog__ or __HDMI__ output as described earlier.
+
+5.3.3 Fldigi RX Monitoring
+
+You can toggle RX monitoring on and off and apply filtering to the received audio by going __View > Rx Audio Dialog__.  The audio will be played through the built-in audio interface.  Don't forget to select __Analog__ or __HDMI__ output as described earlier.
