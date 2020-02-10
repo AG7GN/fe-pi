@@ -1,5 +1,5 @@
 # HOWTO Use `pulseaudio` with a Fe-Pi Stereo Sound Card and Fldigi/Direwolf
-Version: 20200130  
+Version: 20200209  
 Author: Steve Magnuson, AG7GN  
 
 This is a variation of the Split Channels documentation for DRAWS/UDRC by **mcdermj** 
@@ -22,7 +22,7 @@ __NOTE:__ If you are using the Hampi image, the majority of the following setup 
 
 ### 2.1 Install `pulseaudio`  
 
-PulseAudio is installed by default in Raspbian Stretch and Buster.  Just to make sure it is, open a terminal, then run:
+`pulseaudio` is installed by default in Raspbian Stretch and Buster.  Just to make sure it is, open a terminal, then run:
 
 	sudo apt update && sudo apt install pulseaudio
 
@@ -55,7 +55,7 @@ The card name is "__Audio__" in this example.  Use the name that's after "card 1
 
 		sudo cp /etc/asound.conf /etc/asound.conf.original 
 
-### 2.4 Create `/etc/asound.conf`
+### 2.4 Create/modify `/etc/asound.conf`
 
 This step will make the virtual audio interfaces we create in `pulseaudio` available to applications that can't use `pulseaudio` directly, like Direwolf.  These appear to other applications as [ALSA](https://alsa-project.org/wiki/Main_Page) devices.  
 
@@ -185,7 +185,7 @@ As sudo, edit `/etc/pulse/default.pa` so it looks like the following:
 
 We don't want PulseAudio to be the default audio device.  Why?  Because we don't want applications that use audio to interfere with the operation of the ham radio applications.
 
-__IMPORTANT__:  I have noticed that when PulseAudio is updated as part of the normal Raspbian updates, `/usr/share/alsa/pulse-alsa.conf` may be overwritten.  Please check this file whenever PulseAudio is updated and make sure that all lines are commented out as described below.
+__IMPORTANT__:  I have noticed that when `pulseaudio` is updated as part of the normal Raspbian updates, `/usr/share/alsa/pulse-alsa.conf` may be overwritten.  Please check this file whenever `pulseaudio` is updated and make sure that all lines are commented out as described below.
 
 Make a copy of `/usr/share/alsa/pulse-alsa.conf`:  
 
@@ -211,13 +211,13 @@ As sudo, edit `/usr/share/alsa/pulse-alsa.conf` and comment out __all__ non-empt
 
 ### 2.7 Restart `pulseaudio` 
 
-- For Debian Buster, pulseaudio runs as a user service:
+- For Debian Buster, `pulseaudio` runs as a __user__ service:
 
 	Open a terminal, then run:
 
 		systemctl --user restart pulseaudio 
 	
-- For Debian Stretch, pulseaudio runs as a sytem service:
+- For Debian Stretch, `pulseaudio` runs as a __sytem__ service:
 
 	Open a terminal, then run:
 
@@ -230,20 +230,20 @@ At this stage, `pulseaudio` is ready to use on either the left or the right radi
 
 1. Decide how you want to use your radios and Fldigi and Direwolf.  
 
-1. Determine where your radio(s) is/are connected (applies to the Nexus DR-X or DigiLink boards):
+1. Determine where your radio(s) is/are connected (applies to the Nexus DR-X and DigiLink boards):
 
 	- The "Left" radio (uses GPIO 12 for PTT) is plugged in to the left 
 6-pin miniDIN **_or_** the RJ45 jack if configured.
 	- The "Right" radio (uses GPIO 23 for PTT) is plugged in to the right 
 6-pin miniDIN **_or_** the TRRS jack if configured.
 
-1. Select your desired scenario from the Scenario sections that follow.
+1. Select your desired scenario from the __Scenario__ sections that follow.
 
 ### 3.1 Scenario 1: I want to use only Fldigi with one radio.
 
-#### 3.1.1 Configure Fldigi
+#### 3.1.1 Configure Fldigi (4.1.09 and later)
 
-1. Open Fldigi, click __Configure > Sound Card__.  Select the __Devices__ tab.
+1. Open Fldigi, click __Configure > Config Dialog__.  Select __Soundcard > Devices__.
 1. Check __PulseAudio__ and leave the *Server String* field empty. 
 1. Select __Settings__ and select Converter __Medium Sinc Interpolator__ (best for V/UHF - change as desired) 
 1. Select __Right channel__.  
@@ -266,7 +266,7 @@ __Transmit__ Usage *and* under __Receive__ Usage.
 
 		lxpanelctl restart
 
-1.	Restart Fldigi from the menu.
+1.	[Re]start Fldigi from the menu.
 
 ### 3.2 Scenario 2: I want to use only Direwolf with one radio.
 
@@ -409,7 +409,7 @@ The Pi's built-in sound interface can output audio to the audio jack on the boar
 
 To adjust the level of the audio on your Pi's speakers, use the speaker's volume knob if it has one.  The speaker icon in the upper right of the Pi desktop also controls the Pi's speaker volume.  
 
-Another way is to adjust the volume in alsamixer (__0 bcm2835 ALSA__ device) or clicking the Raspberry icon on the desktop, select __Preferences > Audio Device Settings__.  Select the __bcm2835 ALSA__ sound card, and adjust the slider to your liking.
+Another way is to adjust the volume in alsamixer (__0 bcm2835 ALSA__ device) or clicking the Raspberry icon on the desktop, select __Preferences > Audio Device Settings__.  Select the __bcm2835 ALSA__ sound card, and adjust the slider to your liking.  You may have to click the __Select Controls...__ button to enable the slider.
 
 ### 5.1 Control TX and/or RX monitoring control from the command line
 
@@ -424,6 +424,8 @@ These terminal commands will enable and disable monitoring of the radio's TX and
 - Stop all monitoring
 
 		pactl unload-module module-loopback
+
+Make sure your speakers are attached (Ananlog or HDMI) and your have Analog or HDMI output selected and the volume is set correctly.
 
 ### 5.2 (Optional) Make some menu items to control RX and TX monitoring
 
@@ -493,7 +495,6 @@ Unlike Alerts, Fldigi [Notifications](http://www.w1hkj.com/FldigiHelp/notifier_p
 1.	Enter your search criteria.
 2.	Under __Run Program__, enter the following:
 
-		
 		aplay -D system-audio-playback <path-to-WAV-file>
 	For example:
 
@@ -501,6 +502,16 @@ Unlike Alerts, Fldigi [Notifications](http://www.w1hkj.com/FldigiHelp/notifier_p
 
 This will send audio triggered by a Notification to the built-in audio interface.  Don't forget to select __Analog__ or __HDMI__ output as described earlier.
 
+You can also use `paplay`, the PulseAudio player, which can play OGG audio files in addition to WAV files.  You can optionally tell `paplay` what audio sink to use.  Example:
+
+		paplay --device=system-audio-playback /home/pi/fsq_ag7gn.ogg
+		
+Use this command list the audio formats `paplay` supports:
+
+		paplay --list-file-formats
+
+Both `aplay` and `paplay` are installed by default in Raspbian Buster.
+
 5.3.3 Fldigi RX Monitoring
 
-You can toggle RX monitoring on and off and apply filtering to the received audio by going __View > Rx Audio Dialog__.  The audio will be played through the built-in audio interface.  Don't forget to select __Analog__ or __HDMI__ output as described earlier.
+Fldigi has built-in audio monitoring capability.  You can toggle RX monitoring on and off and apply filtering to the received audio by going __View > Rx Audio Dialog__.  The audio will be played through the built-in audio interface.  Don't forget to select __Analog__ or __HDMI__ output as described earlier.
