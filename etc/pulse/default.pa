@@ -23,7 +23,10 @@
 ### Load audio drivers statically
 ### (it's probably better to not load these drivers manually, but instead
 ### use module-udev-detect -- see below -- for doing this automatically)
-load-module module-alsa-card device_id="Audio" name="fepi" card_name="fepi" namereg_fail=false tsched=yes fixed_latency_range=no ignore_dB=no deferred_volume=yes use_ucm=no rate=96000 format=s32le source_name="fepi-capture" sink_name="fepi-playback" mmap=yes
+##load-module module-alsa-sink device=hw:0,0
+#load-module module-combine-sink sink_name=system-audio-playback
+
+load-module module-alsa-card device_id="Audio" name="fepi" card_name="fepi" namereg_fail=false tsched=yes fixed_latency_range=no ignore_dB=no deferred_volume=yes use_ucm=no rate=96000 format=s16le source_name="fepi-capture" sink_name="fepi-playback" mmap=yes
 
 #  Create the left source/sink
 load-module module-remap-sink sink_name="fepi-playback-left" master="fepi-playback" channels=1 channel_map="mono" master_channel_map="front-left" remix=no
@@ -33,14 +36,18 @@ load-module module-remap-source source_name="fepi-capture-left" master="fepi-cap
 load-module module-remap-sink sink_name="fepi-playback-right" master="fepi-playback" channels=1 channel_map="mono" master_channel_map="front-right" remix=no
 load-module module-remap-source source_name="fepi-capture-right" master="fepi-capture" channels=1 channel_map="mono" master_channel_map="front-right" remix=no
 
+#load-module module-remap-sink sink_name="system-audio-playback-left" master="system-audio-playback" channels=1 channel_map="mono" master_channel_map="front-left" remix=no
+#load-module module-remap-sink sink_name="system-audio-playback-right" master="system-audio-playback" channels=1 channel_map="mono" master_channel_map="front-right" remix=no
+
 #  Load up the onboard audio and use it for a monitor channel
 .nofail
-load-module module-alsa-card device_id="ALSA" name="system-audio" card_name="system-audio" namereg_fail=false tsched=yes fixed_latency_range=no ignore_dB=no deferred_volume=yes use_ucm=no rate=48000 format=s16le sink_name="system-audio-playback" mmap=no
+load-module module-alsa-card device_id="ALSA" name="system-audio" card_name="system-audio" namereg_fail=false tsched=yes fixed_latency_range=no ignore_dB=no deferred_volume=yes use_ucm=no rate=48000 format=s16le sink_name="system-audio-playback" mmap=yes
 
-# The module-loopback line will monitor audio from the radio on the Pi's speakers
+# Use only ONE of the following load-module lines.  The module-loopback line will monitor audio from the radio on the Pi's speakers
 # The module-combine-sink will monitor, on the Pis speakers, audio sent by the Pi to the radio 
 #load-module module-loopback source="fepi-capture" sink="system-audio-playback"
-load-module module-combine-sink sink_name=combined slaves=fepi-playback,system-audio-playback channels=2
+#load-module module-loopback source="fepi-playback-monitor" sink="system-audio-playback"
+#load-module module-combine-sink sink_name=combined slaves=fepi-playback,system-audio-playback channels=2
 .fail
 #
 
@@ -75,7 +82,5 @@ load-module module-systemd-login
 ### Make some devices default
 #set-default-sink combined
 #set-default-sink fepi-playback
-#set-default-source fepi-capture
+set-default-source fepi-capture
 set-default-sink system-audio-playback
-set-default-source null
-

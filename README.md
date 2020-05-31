@@ -1,5 +1,5 @@
 # HOWTO Use `pulseaudio` with a Fe-Pi Stereo Sound Card and Fldigi/Direwolf
-Version: 20200209  
+Version: 20200528  
 Author: Steve Magnuson, AG7GN  
 
 This is a variation of the Split Channels documentation for DRAWS/UDRC by **mcdermj** 
@@ -19,6 +19,16 @@ This procedure assumes the operating user is __pi__ and pi's home directory is _
 ## 2. Configuration Procedure
 
 __NOTE:__ If you are using the Hampi image, the majority of the following setup is already done for you.
+
+### 2.0 Modify `/boot/cmdline.txt`
+
+The release of Rasbian Buster stable kernel 4.19.118-v7+ (Raspbian package `raspberrypi-kernel/testing,now 1.20200512-2 armhf`) introduced some changes in how the sound interfaces are handled.  These changes break the Fldigi alerts and TX/RX monitor features.  
+
+Fortunately, the fix is simple: Append this text to the end of the line in `/boot/cmdline.txt` and reboot.  This is ONLY needed when using raspbian-kernel `1.20200512-2` or later.
+
+	snd-bcm2835.enable_compat_alsa=1 snd-bcm2835.enable_hdmi=0 snd-bcm2835.enable_headphones=0
+	
+You must reboot after making this change.
 
 ### 2.1 Install `pulseaudio`  
 
@@ -97,89 +107,7 @@ As sudo, make a backup of `/etc/pulse/default.pa`:
 	cd /etc/pulse 
 	sudo cp default.pa default.pa.original 
 
-As sudo, edit `/etc/pulse/default.pa` so it looks like the following:  
-
-	#!/usr/bin/pulseaudio -nF
-	#
-	# This file is part of PulseAudio.
-	#
-	# PulseAudio is free software; you can redistribute it and/or modify it
-	# under the terms of the GNU Lesser General Public License as published by
-	# the Free Software Foundation; either version 2 of the License, or
-	# (at your option) any later version.
-	#
-	# PulseAudio is distributed in the hope that it will be useful, but
-	# WITHOUT ANY WARRANTY; without even the implied warranty of
-	# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-	# General Public License for more details.
-	#
-	# You should have received a copy of the GNU Lesser General Public License
-	# along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
-
-	# This startup script is used only if PulseAudio is started per-user
-	# (i.e. not in system mode)
-
-	.fail
-
-	### Load audio drivers statically
-	### (it's probably better to not load these drivers manually, but instead
-	### use module-udev-detect -- see below -- for doing this automatically)
-	load-module module-alsa-card device_id="Audio" name="fepi" card_name="fepi" namereg_fail=false tsched=yes fixed_latency_range=no ignore_dB=no deferred_volume=yes use_ucm=no rate=96000 format=s32le source_name="fepi-capture" sink_name="fepi-playback" mmap=yes
-
-	#  Create the left source/sink
-	load-module module-remap-sink sink_name="fepi-playback-left" master="fepi-playback" channels=1 channel_map="mono" master_channel_map="front-left" remix=no
-	load-module module-remap-source source_name="fepi-capture-left" master="fepi-capture" channels=1 channel_map="mono" master_channel_map="front-left" remix=no
-
-	#  Create the right source/sink
-	load-module module-remap-sink sink_name="fepi-playback-right" master="fepi-playback" channels=1 channel_map="mono" master_channel_map="front-right" remix=no
-	load-module module-remap-source source_name="fepi-capture-right" master="fepi-capture" channels=1 channel_map="mono" master_channel_map="front-right" remix=no
-
-	#  Load up the onboard audio and use it for a monitor channel
-	.nofail
-	load-module module-alsa-card device_id="ALSA" name="system-audio" card_name="system-audio" namereg_fail=false tsched=yes fixed_latency_range=no ignore_dB=no deferred_volume=yes use_ucm=no rate=48000 format=s32le sink_name="system-audio-playback" mmap=no
-
-	# Use only ONE of the following load-module lines.  The module-loopback line will monitor audio from the radio on the Pi's speakers
-	# The module-combine-sink will monitor, on the Pis speakers, audio sent by the Pi to the radio 
-	#load-module module-loopback source="fepi-capture" sink="system-audio-playback"
-	#load-module module-loopback source="fepi-playback-monitor" sink="system-audio-playback"
-	load-module module-combine-sink sink_name=combined slaves=fepi-playback,system-audio-playback channels=2
-	.fail
-	#
-
-	### Load several protocols
-	.ifexists module-esound-protocol-unix.so
-	load-module module-esound-protocol-unix
-	.endif
-	load-module module-native-protocol-unix
-
-	### Automatically move streams to the default sink if the sink they are
-	### connected to dies, similar for sources
-	load-module module-rescue-streams
-
-	### Make sure we always have a sink around, even if it is a null sink.
-	load-module module-always-sink
-
-	### Honour intended role device property
-	load-module module-intended-roles
-
-	### Automatically suspend sinks/sources that become idle for too long
-	load-module module-suspend-on-idle
-
-	### If autoexit on idle is enabled we want to make sure we only quit
-	### when no local session needs us anymore.
-	.ifexists module-console-kit.so
-	load-module module-console-kit
-	.endif
-	.ifexists module-systemd-login.so
-	load-module module-systemd-login
-	.endif
-
-	### Make some devices default
-	#set-default-sink combined
-	#set-default-sink fepi-playback
-	#set-default-source fepi-capture
-	set-default-sink system-audio-playback
-	set-default-source null
+As sudo, edit `/etc/pulse/default.pa` so it looks like the `default.pa` file in this repository.  
 
 ### 2.6 Prevent `pulseaudio` from being the default sound interface  
 
