@@ -18,14 +18,3 @@ pcm.system-audio-playback {
    type pulse
    device "system-audio-playback"
 }
-pcm.system-audio-playback-left {
-   type pulse
-   device "system-audio-playback-left"
-}
-pcm.system-audio-playback-right {
-   type pulse
-   device "system-audio-playback-right"
-}
-
-
-
