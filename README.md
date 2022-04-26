@@ -14,7 +14,7 @@ at [NW Digital Radio](https://github.com/nwdigitalradio/split-channels), expande
 - Familiarity with the Pi's Terminal application, basic LINUX commands and the use of `sudo`
 - Familiarity with any Linux text editor
 
-This procedure assumes the operating user is __pi__ and pi's home directory is __/home/pi__ and that user __pi__ has sudo privileges (the default).  Adjust as necessary if this is not the case.
+This procedure assumes the operating user is __pi__ and pi's home directory is __$HOME__ and that user __pi__ has sudo privileges (the default).  Adjust as necessary if this is not the case.
 
 ## 2. Configuration Procedure
 
@@ -252,13 +252,13 @@ right), then run:
 1) Edit (as sudo) the `fldigi-kenwood.desktop` file, changing the `Exec=` and `Name=`
 lines as follows:
 
-		Exec=sh -c 'PULSE_SINK=fepi-playback PULSE_SOURCE=fepi-capture fldigi --config-dir=/home/pi/.fldigi-left -title "Kenwood fldigi"' 
+		Exec=sh -c 'PULSE_SINK=fepi-playback PULSE_SOURCE=fepi-capture fldigi --config-dir=$HOME/.fldigi-left -title "Kenwood fldigi"' 
 		Name[en_US]=Fldigi - Kenwood
 
 1) Edit (as sudo) the `fldigi-alinco.desktop` file, changing the `Exec=` and `Name=`
 lines as follows:
 
-		Exec=sh -c 'PULSE_SINK=fepi-playback PULSE_SOURCE=fepi-capture fldigi --config-dir=/home/pi/.fldigi-right -title "Alinco fldigi"' 
+		Exec=sh -c 'PULSE_SINK=fepi-playback PULSE_SOURCE=fepi-capture fldigi --config-dir=$HOME/.fldigi-right -title "Alinco fldigi"' 
 		Name[en_US]=Fldigi - Alinco
 
 1) Reload the menu.  Run this command in a terminal (this step may not be necessary):
@@ -371,7 +371,7 @@ You may need to modify __Categories=__ in the files described below depending on
 		Terminal=false
 		Type=Application
 		Categories=HamRadio;
-		Path=/home/pi
+		Path=$HOME
 
 1.	Create (as sudo) a file called `/usr/local/share/applications/radio-monitor-tx.desktop` with this text:
 
@@ -384,7 +384,7 @@ You may need to modify __Categories=__ in the files described below depending on
 		Terminal=false
 		Type=Application
 		Categories=HamRadio;
-		Path=/home/pi
+		Path=$HOME
 		
 1.	Create (as sudo) a file called `/usr/local/share/applications/radio-monitor-stop.desktop` with this text:
 
@@ -397,7 +397,7 @@ You may need to modify __Categories=__ in the files described below depending on
 		Terminal=false
 		Type=Application
 		Categories=HamRadio;
-		Path=/home/pi
+		Path=$HOME
 		
 1. Edit the placement of these menu items as desired using the Pi's Main Menu editor (__Pi icon > Preferences > Main Menu Editor__)
 
@@ -432,7 +432,7 @@ This will send audio triggered by a Notification to the built-in audio interface
 
 You can also use `paplay`, the PulseAudio player, which can play OGG audio files in addition to WAV files.  You can optionally tell `paplay` what audio sink to use.  Example:
 
-		paplay --device=system-audio-playback /home/pi/fsq_ag7gn.ogg
+		paplay --device=system-audio-playback $HOME/fsq_ag7gn.ogg
 		
 Use this command list the audio formats `paplay` supports:
 

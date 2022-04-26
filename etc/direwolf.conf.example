@@ -1,7 +1,0 @@
-ADEVICE fepi-capture-right fepi-playback-right
-ACHANNELS 1
-ARATE 48000
-CHANNEL 0
-MYCALL N0CALL-1
-MODEM 1200
-PTT GPIO 23

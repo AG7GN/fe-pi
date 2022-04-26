@@ -1,0 +1,1 @@
+ATTRS{id}=="Audio", ENV{PULSE_IGNORE}="1"

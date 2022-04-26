@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+#
+#
+VERSION="1.0.1"
+echo "Adding Fe-Pi dtoverlay if needed..."
+CONFIG_="/boot/config.txt"
+if ! grep -q "^dtoverlay=fe-pi-audio" $CONFIG_
+then
+	echo "# Enable Fe Pi audio card"  | sudo tee --append $CONFIG_
+	echo "dtoverlay=fe-pi-audio" | sudo tee --append $CONFIG_
+fi
+echo >&2 "Done."
+
+echo >&2 "Moving ALSA and pulseaudio configuration files into position..."
+[[ -f /etc/asound.conf ]] && sudo mv -f /etc/asound.conf /etc/asound.conf.previous
+sudo cp -f fe-pi/etc/asound.conf /etc/
+cp -f fe-pi/config/pulse/default.pa $HOME/.config/pulse/default.pa 
+sudo cp -f fe-pi/etc/udev/rules.d/*.rules /etc/udev/rules.d/
+echo >&2 "Done."
+#echo >&2 "Restarting pulseaudio..."
+#systemctl --user restart pulseaudio 
+#echo >&2 "Done."
+

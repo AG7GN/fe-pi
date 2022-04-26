@@ -2,10 +2,10 @@
 Name=Fldigi-Kenwood
 GenericName=Amateur Radio Digital Modem
 Comment=Amateur Radio Sound Card Communications
-Exec=sh -c 'PULSE_SINK=fepi-playback PULSE_SOURCE=fepi-capture fldigi --config-dir /home/pi/.fldigi2 -title "Kenwood fldigi"'
+Exec=sh -c 'PULSE_SINK=fepi-playback PULSE_SOURCE=fepi-capture fldigi --config-dir $HOME/.fldigi2 -title "Kenwood fldigi"'
 Icon=fldigi
 Terminal=false
 Type=Application
 Categories=HamRadio;
-Path=/home/pi
+Path=$HOME
 Name[en_US]=Fldigi Kenwood (Right Radio)

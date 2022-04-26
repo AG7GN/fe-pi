@@ -7,4 +7,4 @@ Icon=fldigi
 Terminal=false
 Type=Application
 Categories=HamRadio;
-Path=/home/pi
+Path=$HOME

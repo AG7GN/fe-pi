@@ -1,0 +1,23 @@
+.include /etc/pulse/default.pa
+
+# Fe-Pi card setup
+load-module module-alsa-card device_id="Audio" name="fepi" card_name="fepi" namereg_fail=false tsched=yes fixed_latency_range=no ignore_dB=no deferred_volume=yes use_ucm=no rate=96000 format=s16le source_name="fepi-capture" sink_name="fepi-playback" mmap=yes profile_set=default.conf
+
+#  Create the left source/sink from the Fe-Pi
+load-module module-remap-sink sink_name="fepi-playback-left" master="fepi-playback" channels=1 channel_map="mono" master_channel_map="front-left" remix=no
+load-module module-remap-source source_name="fepi-capture-left" master="fepi-capture" channels=1 channel_map="mono" master_channel_map="front-left" remix=no
+
+#  Create the right source/sink from the Fe-Pi
+load-module module-remap-sink sink_name="fepi-playback-right" master="fepi-playback" channels=1 channel_map="mono" master_channel_map="front-right" remix=no
+load-module module-remap-source source_name="fepi-capture-right" master="fepi-capture" channels=1 channel_map="mono" master_channel_map="front-right" remix=no
+
+# Create a stereo combined sink for the headphone and HDMI audio interfaces
+# so we don't have to know which is active at any given time
+load-module module-combine-sink sink_name=system-audio-playback sink_properties=device.description='"Combined\ headphone\ and\ HDMI\ sink"' slaves=alsa_output.platform-bcm2835_audio.analog-stereo,alsa_output.platform-bcm2835_audio.digital-stereo channels=2
+
+#  Create a left sink from combined headphone/HDMI built-in sound card sink
+load-module module-remap-sink sink_name="system-audio-playback-left" master="system-audio-playback" channels=1 channel_map="mono" master_channel_map="front-left" remix=no
+
+#  Create a right sink from combined headphone/HDMI built-in sound card sink
+load-module module-remap-sink sink_name="system-audio-playback-right" master="system-audio-playback" channels=1 channel_map="mono" master_channel_map="front-right" remix=no
+
